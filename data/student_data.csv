@@ -1,0 +1,6 @@
+student_id,student_name,attendance_percentage,previous_semester_marks,internal_assessment_marks,assignment_marks,study_hours,submitted_at
+STU2001,Aarav Sharma,88.5,78.0,82.5,85.0,4.5,2026-10-15 10:30:00
+STU2002,Priya Patel,92.0,86.5,90.0,94.0,5.5,2026-10-15 11:15:00
+STU2003,Rohan Verma,64.0,52.0,48.0,55.0,2.0,2026-10-15 12:00:00
+STU2004,Ananya Iyer,76.0,71.0,68.5,74.0,3.5,2026-10-15 14:20:00
+STU2005,Vikram Singh,52.0,44.0,40.0,48.0,1.5,2026-10-15 15:05:00
