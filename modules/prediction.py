@@ -4,9 +4,11 @@ Applies trained Scikit-learn pipelines to predict expected final exam marks.
 Computes configurable letter grades, academic performance categories,
 factor analysis, and automated recommendations.
 """
+import os
 from typing import Dict, Any, Tuple, Optional, List
 import pandas as pd
 import numpy as np
+from modules.preprocessing import FEATURE_COLUMNS
 from modules.model_training import load_saved_model, train_and_compare_models
 from modules.recommendations import generate_academic_recommendations
 from utils.validation import validate_prediction_inputs
@@ -82,9 +84,9 @@ def predict_student_performance(
 
     if pipeline is None:
         # Fallback: check if student_performance.csv exists to auto-train initial baseline model
-        csv_path = "data/student_performance.csv"
+        csv_path = os.path.join("data", "student_performance.csv")
         try:
-            if pd.io.common.file_exists(csv_path):
+            if os.path.exists(csv_path):
                 df_hist = pd.read_csv(csv_path)
                 train_out, train_err = train_and_compare_models(df_hist)
                 if train_out:
@@ -96,14 +98,15 @@ def predict_student_performance(
         errors.append("No trained model found. Please train a machine learning model on the 'Model Training' page first.")
         return None, errors
 
-    # Step 3: Format features into DataFrame matching trained columns
-    input_data = pd.DataFrame([{
+    # Step 3: Format features into DataFrame matching trained columns and order
+    raw_dict = {
         "attendance_percentage": float(attendance),
         "previous_semester_marks": float(prev_marks),
         "internal_assessment_marks": float(internal_marks),
         "assignment_marks": float(assignment_marks),
         "study_hours": float(study_hours),
-    }])
+    }
+    input_data = pd.DataFrame([raw_dict])[FEATURE_COLUMNS]
 
     # Step 4: Run prediction
     try:

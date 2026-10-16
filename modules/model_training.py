@@ -19,9 +19,17 @@ import joblib
 from sklearn.linear_model import LinearRegression
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_absolute_error, root_mean_squared_error, r2_score
+from sklearn.metrics import mean_absolute_error, r2_score
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
+
+# Backward compatibility for scikit-learn < 1.4 where root_mean_squared_error was not available
+try:
+    from sklearn.metrics import root_mean_squared_error
+except ImportError:
+    from sklearn.metrics import mean_squared_error
+    def root_mean_squared_error(y_true, y_pred):
+        return float(mean_squared_error(y_true, y_pred) ** 0.5)
 
 from modules.preprocessing import preprocess_data, FEATURE_COLUMNS, TARGET_COLUMN
 
@@ -188,14 +196,34 @@ def save_trained_model(
 
 
 def load_saved_model() -> Tuple[Optional[Pipeline], Optional[Dict[str, Any]]]:
-    """Loads active model pipeline and associated metadata from disk."""
+    """
+    Loads active model pipeline and associated metadata from disk.
+    Performs runtime verification to ensure the loaded model is functional
+    and compatible with the current Python environment.
+    """
     if not os.path.exists(MODEL_FILE) or not os.path.exists(METADATA_FILE):
         return None, None
     try:
         pipeline = joblib.load(MODEL_FILE)
         metadata = joblib.load(METADATA_FILE)
+
+        # Integrity verification
+        if not hasattr(pipeline, "predict") or not isinstance(metadata, dict):
+            return None, None
+
+        # Sanity check dry-run with expected feature schema to catch version discrepancies
+        dummy_input = pd.DataFrame([{
+            "attendance_percentage": 75.0,
+            "previous_semester_marks": 70.0,
+            "internal_assessment_marks": 72.0,
+            "assignment_marks": 80.0,
+            "study_hours": 3.5,
+        }])
+        _ = pipeline.predict(dummy_input)
+
         return pipeline, metadata
     except Exception:
+        # If unpickling or execution fails due to version incompatibility, signal failure cleanly
         return None, None
 
 

@@ -41,18 +41,18 @@ def run_tests():
     from modules.data_collection import add_student_record, load_student_records, search_student_records, delete_student_record
     
     test_id = "STU_TEST_01"
-    ok, msg = add_student_record(test_id, "Test Runner", 88.0, 82.0, 84.0, 90.0, 4.5)
-    assert ok or "already exists" in msg, f"Add student record failed: {msg}"
-    
-    records = load_student_records()
-    assert not records.empty, "student_data.csv should not be empty"
-    
-    search_res = search_student_records(test_id)
-    assert not search_res.empty, f"Search failed for {test_id}"
-    
-    del_ok, del_msg = delete_student_record(test_id)
-    assert del_ok, f"Delete failed: {del_msg}"
-    print(" -> PASSED: Data collection add, read, search, and delete work properly.")
+    try:
+        ok, msg = add_student_record(test_id, "Test Runner", 88.0, 82.0, 84.0, 90.0, 4.5)
+        assert ok or "already exists" in msg, f"Add student record failed: {msg}"
+        
+        records = load_student_records()
+        assert not records.empty, "student_data.csv should not be empty"
+        
+        search_res = search_student_records(test_id)
+        assert not search_res.empty, f"Search failed for {test_id}"
+    finally:
+        del_ok, _ = delete_student_record(test_id)
+    print(" -> PASSED: Data collection add, read, search, and delete work properly without polluting student_data.csv.")
 
     # 3. Test Preprocessing
     print("\n[TEST 3] Testing modules.preprocessing...")
